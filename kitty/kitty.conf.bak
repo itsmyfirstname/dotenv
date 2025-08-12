@@ -12,7 +12,7 @@
 ##########################################################################
 
 # themes
-#include GruvBox_DarkHard.conf
+include GruvBox_DarkHard.conf
 #include Wryan.conf
 #include VSCode_Dark.conf
 
@@ -92,6 +92,6 @@ map ctrl+shift+left previous_tab
 map ctrl+shift+q close_tab
 
 # BEGIN_KITTY_THEME
-# Dimmed Monokai
-include current-theme.conf
+# Gruvbox Dark Hard
+#include current-theme.conf
 # END_KITTY_THEME
