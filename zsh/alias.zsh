@@ -9,6 +9,10 @@ function qedit() {
 	  zshrc)
 		  nvim $HOME/.zshrc
 		  ;;
+	  nvim)
+		  nvim $HOME/.config/nvim/init.lua
+		  ;;
+
 	  config | conf)
 		  nvim $HOME/.config 
 		  ;;
