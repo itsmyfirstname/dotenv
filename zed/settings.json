@@ -35,9 +35,9 @@
           "name": "qwen2.5-coder:7b",
           "display_name": "qwen 2.5 coder 32K",
           "max_tokens": 32768,
-          "supports_tools": true,
-          "supports_thinking": true,
-          "supports_images": true
+          "supports_tools": false,
+          "supports_thinking": false,
+          "supports_images": false
         }
       ]
     }

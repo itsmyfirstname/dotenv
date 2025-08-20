@@ -2,3 +2,4 @@ go/
 dconf/
 *.mimetypes
 mimeapps.list
+Signal/

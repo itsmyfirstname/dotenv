@@ -21,3 +21,8 @@ function qedit() {
 		  ;;
 	esac
 }
+
+function qgit() {
+	[[ -n "$1" ]] || git status && return
+	git add . && git commit "$1" && git push
+}
