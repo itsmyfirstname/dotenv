@@ -3,3 +3,4 @@ dconf/
 *.mimetypes
 mimeapps.list
 Signal/
+langchain/

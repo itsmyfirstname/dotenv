@@ -90,6 +90,12 @@ output * bg /home/mehays/.config/sway/2k.jpg fill
 
     # Exit sway (logs you out of your Wayland session)
     bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
+
+    bindsym Mod4+p       exec grimshot save active
+    bindsym Mod4+Shift+p exec grimshot save area
+    bindsym Mod4+Mod1+p  exec grimshot save output
+    bindsym Mod4+Ctrl+p  exec grimshot save window
+
 #
 # Moving around:
 #

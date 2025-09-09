@@ -1,0 +1,5 @@
+#!/bin/bash
+efibootmgr --disk /dev/nvme0n1 --part 1 --create --label "Auto-Arch-Fallback" --loader /vmlinuz-linux --unicode 'root=UUID=1c532788-8337-44c9-b867-0b96d6c0ee26 resume=UUID= rw initrd=\amd-ucode.img initrd=\initramfs-linux-fallback.img'
+efibootmgr --disk /dev/nvme0n1 --part 1 --create --label "Auto-Arch" --loader /vmlinuz-linux --unicode 'root=UUID=1c532788-8337-44c9-b867-0b96d6c0ee26 resume=UUID= rw initrd=\amd-ucode.img initrd=\initramfs-linux.img'
+exit 0
+# See man efibootmgr

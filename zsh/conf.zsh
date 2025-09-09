@@ -98,7 +98,8 @@ COMPLETION_WAITING_DOTS="true"
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-export PATH="/home/$USER/.local/bin:$PATH"
+# Add Ruby and local bin to path
+export PATH="/home/mehays/.local/share/gem/ruby/3.4.0/bin:/home/$USER/.local/bin:$PATH"
 #Start sway on start
 if [ -z "$WAYLAND_DISPLAY" ] && [ -n "$XDG_VTNR" ] && [ "$XDG_VTNR" -eq 1 ] ; then
     exec sway
@@ -107,3 +108,6 @@ fi
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Update ruby cache path
+export GEM_HOME=/home/mehays/.local/ruby/cache
