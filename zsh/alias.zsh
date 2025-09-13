@@ -33,4 +33,18 @@ function lazygit() {
 	esac
 }
 
+function lazynet() {
+	case $1 in
+		show) # Show available networks
+			nmcli dev wifi list
+			;;
+		connect)
+			nmcli dev wifi connect $2 -a
+			;;
+		*)
+			nmcli --help
+			;;
+	esac
+}
+
 alias pacup="sudo pacman -Syu" # Full System Upgrade, prepare your...evening, could get messy

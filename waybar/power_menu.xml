@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <menu id="menu">
+    <section>
+      <item id="shutdown">
+        <label>Shutdown</label>
+      </item>
+      <item id="reboot">
+        <label>Reboot</label>
+      </item>
+      <item id="suspend">
+        <label>Suspend</label>
+      </item>
+      <item id="hibernate">
+        <label>Hibernate</label>
+      </item>
+    </section>
+  </menu>
+</interface>

@@ -102,7 +102,7 @@ COMPLETION_WAITING_DOTS="true"
 export PATH="/home/mehays/.local/share/gem/ruby/3.4.0/bin:/home/$USER/.local/bin:$PATH"
 #Start sway on start
 if [ -z "$WAYLAND_DISPLAY" ] && [ -n "$XDG_VTNR" ] && [ "$XDG_VTNR" -eq 1 ] ; then
-    exec sway
+    exec sway 
 fi
 
 export NVM_DIR="$HOME/.nvm"

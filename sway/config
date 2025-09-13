@@ -3,6 +3,10 @@
 # Copy this to ~/.config/sway/config and edit it to your liking.
 #
 # Read `man 5 sway` for a complete reference.
+default_border pixel 2
+#client.focused "#819595" "#B1B6A6" "#ffffff"
+client.focused "#000000" "#000000" "#000000" "#000000"
+
 
 ### Variables
 #
@@ -22,8 +26,7 @@ set $emoji rofi -modi emoji -show emoji
 #
 # Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
 #output * bg /usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
-output * bg /home/mehays/.config/sway/2k.jpg fill
-
+output * bg /home/mehays/.config/sway/cyberpunk-2077-nightcity-cdpr.jpg fit
 #
 # Example configuration:
 #
@@ -48,12 +51,12 @@ output * bg /home/mehays/.config/sway/2k.jpg fill
 #
 # Example configuration:
 #
-#   input type:touchpad {
-#       dwt enabled
-#       tap enabled
-#       natural_scroll enabled
-#       middle_emulation enabled
-#   }
+   input type:touchpad {
+       dwt enabled
+       tap enabled
+       natural_scroll enabled
+       middle_emulation enabled
+   }
 #
 #   input type:keyboard {
 #       xkb_layout "eu"
