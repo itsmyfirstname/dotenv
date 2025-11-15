@@ -99,7 +99,7 @@ COMPLETION_WAITING_DOTS="true"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # Add Ruby and local bin to path
-export PATH="/home/mehays/.local/share/gem/ruby/3.4.0/bin:/home/$USER/.local/bin:$PATH"
+export PATH="/home/$USER/.local/share/gem/ruby/3.4.0/bin:/home/$USER/.local/bin:$PATH"
 #Start sway on start
 if [ -z "$WAYLAND_DISPLAY" ] && [ -n "$XDG_VTNR" ] && [ "$XDG_VTNR" -eq 1 ] ; then
     exec sway 
@@ -111,3 +111,12 @@ export NVM_DIR="$HOME/.nvm"
 
 # Update ruby cache path
 export GEM_HOME=/home/mehays/.local/ruby/cache
+
+# Pyenv Stuff
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init - zsh)"
+
+export GOPATH="/home/$USER/go/bin"
+
+export PATH="$GOPATH:$PATH"

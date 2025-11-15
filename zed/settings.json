@@ -11,12 +11,29 @@
     "profiles": {
       "agent": {
         "name": "Agent",
-        "tools": {},
+        "tools": {
+                    "thinking": true,
+                    "terminal": true,
+                    "read_file": true,
+                    "project_notifications": true,
+                    "open": true,
+                    "now": true,
+                    "move_path": true,
+                    "list_directory": true,
+                    "grep": true,
+                    "find_path": true,
+                    "fetch": true,
+                    "edit_file": true,
+                    "diagnostics": true,
+                    "delete_path": true,
+                    "create_directory": true,
+                    "copy_path": true
+                },
         "enable_all_context_servers": false,
         "context_servers": {}
       }
     },
-    "default_profile": "ask",
+    "default_profile": "agent",
     "always_allow_tool_actions": true,
     "default_model": {
       "provider": "anthropic",

@@ -24,12 +24,17 @@ function qedit() {
 
 function lazygit() {
 	case $1 in 
-		remote) # Show remotes
+		show-remote) # Show remotes
 			git remote -v
 			;;
-		*) # Assume we just want to commit and push some changes
+		undo-commit)
+			git reset --soft HEAD~1
+			;;
+		push) # Assume we just want to commit and push some changes
 			git add . && git commit -m "$1" && git push
 			;;
+		*)
+			echo "push | show-remote | undo-commit"
 	esac
 }
 
@@ -42,6 +47,8 @@ function lazynet() {
 			nmcli dev wifi connect $2 -a
 			;;
 		*)
+			echo "Available options: show | connect"
+			printf "example: lazynet connect myNetwork"
 			nmcli --help
 			;;
 	esac

@@ -4,3 +4,7 @@ dconf/
 mimeapps.list
 Signal/
 langchain/
+vlc/
+QtProject.conf
+pulse/
+cura/
