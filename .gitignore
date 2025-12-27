@@ -8,3 +8,9 @@ vlc/
 QtProject.conf
 pulse/
 cura/
+Joplin/
+Logseq/
+godot/
+joplin-desktop/
+obsidian/
+hidden.*

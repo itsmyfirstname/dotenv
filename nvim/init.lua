@@ -174,7 +174,11 @@ vim.o.confirm = true
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [q]uickfix list' })
+
+-- Sometime hints, warnings, errors etc, are too long to fit on the scren
+--   this pops the diagnostic message into a hovering window for easier reading
+vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, { desc = '[p]op open diagnostic window' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -673,7 +677,11 @@ require('lazy').setup({
       local servers = {
         -- clangd = {},
         gopls = {},
-        ruff = {},
+        ruff = {
+          settings = {
+            configuration = '~/.config/ruff.toml',
+          },
+        },
         pyright = {
           settings = {
             pyright = {
@@ -763,7 +771,7 @@ require('lazy').setup({
       },
     },
     opts = {
-      notify_on_error = false,
+      notify_on_error = true,
       format_on_save = function(bufnr)
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
@@ -781,7 +789,7 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        python = { 'ruff' },
+        python = { 'ruff_format', 'ruff_fix', 'ruff_organize_imports' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },

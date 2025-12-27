@@ -55,3 +55,4 @@ function lazynet() {
 }
 
 alias pacup="sudo pacman -Syu" # Full System Upgrade, prepare your...evening, could get messy
+alias pyactivate="source .venv/bin/activate"

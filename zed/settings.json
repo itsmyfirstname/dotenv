@@ -33,11 +33,11 @@
         "context_servers": {}
       }
     },
-    "default_profile": "agent",
+    "default_profile": "ask",
     "always_allow_tool_actions": true,
     "default_model": {
       "provider": "anthropic",
-      "model": "claude-sonnet-4-thinking-latest"
+      "model": "claude-opus-4-latest"
     }
   },
   "telemetry": {
