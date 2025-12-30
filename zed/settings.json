@@ -33,7 +33,7 @@
         "context_servers": {}
       }
     },
-    "default_profile": "ask",
+    "default_profile": "agent",
     "always_allow_tool_actions": true,
     "default_model": {
       "provider": "anthropic",

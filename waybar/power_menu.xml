@@ -1,19 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <menu id="menu">
-    <section>
-      <item id="shutdown">
-        <label>Shutdown</label>
-      </item>
-      <item id="reboot">
-        <label>Reboot</label>
-      </item>
-      <item id="suspend">
-        <label>Suspend</label>
-      </item>
-      <item id="hibernate">
-        <label>Hibernate</label>
-      </item>
-    </section>
-  </menu>
+  <object class="GtkMenu" id="menu">
+    <child>
+      <object class="GtkMenuItem" id="performance">
+        <property name="label">Performance Mode</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="balanced">
+        <property name="label">Balanced Mode</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="power-saver">
+        <property name="label">Power Saver Mode</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparatorMenuItem"/>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="suspend">
+        <property name="label">Suspend</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="hibernate">
+        <property name="label">Hibernate</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="reboot">
+        <property name="label">Reboot</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="shutdown">
+        <property name="label">Shutdown</property>
+      </object>
+    </child>
+  </object>
 </interface>

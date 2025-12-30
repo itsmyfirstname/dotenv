@@ -7,3 +7,8 @@
 	pager = diff-so-fancy | less --tabs=4 -RF
 [interactive]
 	diffFilter = diff-so-fancy --patch
+[diff]
+	tool = nvimdiff
+[alias]
+	review = "difftool -y"
+	#tbd = "!f() { git diff --name-status \"$1^\" \"$1\"; }; f"
