@@ -22,6 +22,10 @@ function qedit() {
 	esac
 }
 
+function qssh() {
+	kitty +kitten ssh $1
+}
+
 function lazygit() {
 	case $1 in 
 		show-remote) # Show remotes
