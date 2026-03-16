@@ -1,0 +1,24 @@
+[Default Applications]
+x-scheme-handler/http=userapp-Zen-PUFXG3.desktop
+x-scheme-handler/https=userapp-Zen-PUFXG3.desktop
+x-scheme-handler/chrome=userapp-Zen-PUFXG3.desktop
+text/html=userapp-Zen-PUFXG3.desktop
+application/x-extension-htm=userapp-Zen-PUFXG3.desktop
+application/x-extension-html=userapp-Zen-PUFXG3.desktop
+application/x-extension-shtml=userapp-Zen-PUFXG3.desktop
+application/xhtml+xml=userapp-Zen-PUFXG3.desktop
+application/x-extension-xhtml=userapp-Zen-PUFXG3.desktop
+application/x-extension-xht=userapp-Zen-PUFXG3.desktop
+inode/directory=org.kde.dolphin.desktop
+
+[Added Associations]
+x-scheme-handler/http=userapp-Zen-PUFXG3.desktop;userapp-Zen-P35LD3.desktop;userapp-Zen-T646C3.desktop;userapp-Zen-RT36A3.desktop;
+x-scheme-handler/https=userapp-Zen-PUFXG3.desktop;userapp-Zen-P35LD3.desktop;userapp-Zen-T646C3.desktop;userapp-Zen-RT36A3.desktop;
+x-scheme-handler/chrome=userapp-Zen-PUFXG3.desktop;userapp-Zen-P35LD3.desktop;userapp-Zen-T646C3.desktop;userapp-Zen-RT36A3.desktop;
+text/html=userapp-Zen-RT36A3.desktop;userapp-Zen-T646C3.desktop;userapp-Zen-P35LD3.desktop;userapp-Zen-PUFXG3.desktop;
+application/x-extension-htm=userapp-Zen-RT36A3.desktop;userapp-Zen-T646C3.desktop;userapp-Zen-P35LD3.desktop;userapp-Zen-PUFXG3.desktop;
+application/x-extension-html=userapp-Zen-RT36A3.desktop;userapp-Zen-T646C3.desktop;userapp-Zen-P35LD3.desktop;userapp-Zen-PUFXG3.desktop;
+application/x-extension-shtml=userapp-Zen-RT36A3.desktop;userapp-Zen-T646C3.desktop;userapp-Zen-P35LD3.desktop;userapp-Zen-PUFXG3.desktop;
+application/xhtml+xml=userapp-Zen-RT36A3.desktop;userapp-Zen-T646C3.desktop;userapp-Zen-P35LD3.desktop;userapp-Zen-PUFXG3.desktop;
+application/x-extension-xhtml=userapp-Zen-RT36A3.desktop;userapp-Zen-T646C3.desktop;userapp-Zen-P35LD3.desktop;userapp-Zen-PUFXG3.desktop;
+application/x-extension-xht=userapp-Zen-RT36A3.desktop;userapp-Zen-T646C3.desktop;userapp-Zen-P35LD3.desktop;userapp-Zen-PUFXG3.desktop;

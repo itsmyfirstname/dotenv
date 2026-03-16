@@ -7,6 +7,17 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "context_servers": {
+        "some-mcp-server": {
+            "source": "custom",
+            "enabled": true,
+            "command": "uv",
+            "args": [
+                "run --with mcp mcp run src/mcp_py_server/__init__.py"
+            ],
+            "env": {}
+        }
+    },
   "agent": {
     "profiles": {
       "agent": {
@@ -36,8 +47,8 @@
     "default_profile": "agent",
     "always_allow_tool_actions": true,
     "default_model": {
-      "provider": "anthropic",
-      "model": "claude-opus-4-latest"
+      "provider": "x_ai",
+      "model": "grok-4"
     }
   },
   "telemetry": {

@@ -1,7 +1,6 @@
 go/
 dconf/
 *.mimetypes
-mimeapps.list
 Signal/
 langchain/
 vlc/
@@ -14,3 +13,8 @@ godot/
 joplin-desktop/
 obsidian/
 hidden.*
+chromium/
+label-studio/
+session/
+LM Studio/
+Electron/

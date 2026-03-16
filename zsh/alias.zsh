@@ -1,4 +1,9 @@
 #! /usr/bin/zsh
+NETWORK_NAME="Hey_Beaches"
+network_uuid="$(nmcli connection show | grep $NETWORK_NAME | awk '{print $2}')"
+net_device_uuid="$(nmcli connection show | grep $NETWORK_NAME | awk '{print $4}')"
+onedotipv4="192.168.1.171 1.1.1.1 9.9.9.9"
+
 
 function qedit() {
 
@@ -23,24 +28,25 @@ function qedit() {
 }
 
 function qssh() {
-	kitty +kitten ssh $1
+	echo "connecting $@"
+	kitty +kitten ssh $@
 }
 
-function lazygit() {
-	case $1 in 
-		show-remote) # Show remotes
-			git remote -v
-			;;
-		undo-commit)
-			git reset --soft HEAD~1
-			;;
-		push) # Assume we just want to commit and push some changes
-			git add . && git commit -m "$1" && git push
-			;;
-		*)
-			echo "push | show-remote | undo-commit"
-	esac
-}
+# function lazygit() {
+# 	case $1 in 
+# 		show-remote) # Show remotes
+# 			git remote -v
+# 			;;
+# 		undo-commit)
+# 			git reset --soft HEAD~1
+# 			;;
+# 		push) # Assume we just want to commit and push some changes
+# 			git add . && git commit -m "$1" && git push
+# 			;;
+# 		*)
+# 			echo "push | show-remote | undo-commit"
+# 	esac
+# }
 
 function lazynet() {
 	case $1 in
@@ -58,5 +64,18 @@ function lazynet() {
 	esac
 }
 
-alias pacup="sudo pacman -Syu" # Full System Upgrade, prepare your...evening, could get messy
-alias pyactivate="source .venv/bin/activate"
+alias archer-refresh-keyring="sudo pacman -Sy archlinux-keyring"
+alias archer-full-upgrade="archer-refresh-keyring && sudo pacman -Syu" # Full System Upgrade, prepare your...evening, could get messy
+alias archer-refresh-package-lists="archer-refresh-keyring && sudo pacman -Syyu"
+
+alias archer-py-activate="source .venv/bin/activate"
+
+alias archer-set-custom-dns="nmcli con show ${network_uuid} | grep ipv | grep .dns  && sudo nmcli con mod ${network_uuid} ipv4.dns '$onedotipv4' ipv4.ignore-auto-dns yes && sudo nmcli connection modify ${network_uuid} connection.dns-over-tls 1 && sudo nmcli general reload dns-full && sudo nmcli dev reapply ${net_device_uuid} && nmcli con show ${network_uuid} | grep ipv | grep .dns  && nslookup google.com "
+
+alias archer-set-default-dns="nmcli con show ${network_uuid} | grep ipv | grep .dns  && nmcli con mod ${network_uuid} ipv4.dns '' ipv4.ignore-auto-dns no ipv6.dns '' ipv6.ignore-auto-dns no connection.dns-over-tls 0 && nmcli general reload dns-full && nmcli dev reapply ${net_device_uuid} && nmcli con show ${network_uuid} | grep ipv | grep .dns && nslookup google.com "
+alias archer-dns-test="nmcli con show ${network_uuid} | grep ipv | grep .dns && nslookup google.com "
+
+alias archer-seedbox="qssh mehays@192.168.1.148"
+
+alias qtmux="tmux new-session -A -s main"
+alias archer-ls-used-local-ports="sudo ss -tulpn"
