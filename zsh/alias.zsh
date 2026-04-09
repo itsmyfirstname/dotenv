@@ -32,6 +32,28 @@ function qssh() {
 	kitty +kitten ssh $@
 }
 
+
+function archer-flash-usb() {
+	source_iso=${1:-""}
+	mount_device=${2:-"/dev/sda"}
+
+	if [[ -z $source_iso ]]; then
+		echo "Need source ISO"
+		return
+	fi
+
+	echo "Source: ${source_iso}"
+	echo "Mounted Device: ${mount_device}"
+	echo "Everything look good?"
+	read continue_flash
+	if [[ "$continue_flash" == "y" || "$continue_flash" == "Y" ]]; then
+		echo "Proceeding: $continue_flash"
+		sudo dd bs=4M if=$source_iso of=$mount_device status=progress oflag=sync
+	fi
+	echo "Exiting..."
+
+}
+
 # function lazygit() {
 # 	case $1 in 
 # 		show-remote) # Show remotes
