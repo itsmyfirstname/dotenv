@@ -48,6 +48,6 @@ ensure_link() {
   echo "ok: created $link -> $abs_target"
 }
 
-ensure_link "${REPO_ROOT}/nvim" "${CONFIG_DIR}/nvim" "dir"
-ensure_link "${REPO_ROOT}/zsh" "${CONFIG_DIR}/zsh" "dir"
+ensure_link "${REPO_ROOT}/common/nvim" "${CONFIG_DIR}/nvim" "dir"
+ensure_link "${REPO_ROOT}/common/zsh" "${CONFIG_DIR}/zsh" "dir"
 ensure_link "${REPO_ROOT}/.gitconfig" "${HOME}/.gitconfig" "file"
