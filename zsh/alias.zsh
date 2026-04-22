@@ -37,7 +37,7 @@ function qssh() {
 }
 
 
-function archer-flash-usb() {
+function flash-usb() {
 	source_iso=${1:-""}
 	mount_device=${2:-"/dev/sda"}
 
@@ -96,16 +96,15 @@ if [[ -r /etc/arch-release ]] && command -v pacman >/dev/null 2>&1; then
   alias archer-refresh-package-lists="archer-refresh-keyring && sudo pacman -Syyu"
 fi
 
-alias archer-py-activate="source .venv/bin/activate"
 
 if [[ -n $network_uuid && -n $net_device_uuid ]]; then
-  alias archer-set-custom-dns="nmcli con show ${network_uuid} | grep ipv | grep .dns  && sudo nmcli con mod ${network_uuid} ipv4.dns '$onedotipv4' ipv4.ignore-auto-dns yes && sudo nmcli connection modify ${network_uuid} connection.dns-over-tls 1 && sudo nmcli general reload dns-full && sudo nmcli dev reapply ${net_device_uuid} && nmcli con show ${network_uuid} | grep ipv | grep .dns  && nslookup google.com "
+  alias dns-set-custom="nmcli con show ${network_uuid} | grep ipv | grep .dns  && sudo nmcli con mod ${network_uuid} ipv4.dns '$onedotipv4' ipv4.ignore-auto-dns yes && sudo nmcli connection modify ${network_uuid} connection.dns-over-tls 1 && sudo nmcli general reload dns-full && sudo nmcli dev reapply ${net_device_uuid} && nmcli con show ${network_uuid} | grep ipv | grep .dns  && nslookup google.com "
 
-  alias archer-set-default-dns="nmcli con show ${network_uuid} | grep ipv | grep .dns  && nmcli con mod ${network_uuid} ipv4.dns '' ipv4.ignore-auto-dns no ipv6.dns '' ipv6.ignore-auto-dns no connection.dns-over-tls 0 && nmcli general reload dns-full && nmcli dev reapply ${net_device_uuid} && nmcli con show ${network_uuid} | grep ipv | grep .dns && nslookup google.com "
-  alias archer-dns-test="nmcli con show ${network_uuid} | grep ipv | grep .dns && nslookup google.com "
+  alias dns-set-default="nmcli con show ${network_uuid} | grep ipv | grep .dns  && nmcli con mod ${network_uuid} ipv4.dns '' ipv4.ignore-auto-dns no ipv6.dns '' ipv6.ignore-auto-dns no connection.dns-over-tls 0 && nmcli general reload dns-full && nmcli dev reapply ${net_device_uuid} && nmcli con show ${network_uuid} | grep ipv | grep .dns && nslookup google.com "
+  alias dns-test="nmcli con show ${network_uuid} | grep ipv | grep .dns && nslookup google.com "
 fi
 
-alias archer-seedbox="qssh mehays@192.168.1.148"
-
-alias qtmux="tmux new-session -A -s main"
-alias archer-ls-used-local-ports="sudo ss -tulpn"
+alias dot-venv-activate="source .venv/bin/activate"
+alias dot-ssh-seedbox="qssh mehays@192.168.1.148"
+alias dot-tmux="tmux new-session -A -s main"
+alias dot-ls-local-ports="sudo ss -tulpn"

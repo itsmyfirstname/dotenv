@@ -11,4 +11,5 @@
 	tool = nvimdiff
 [alias]
 	review = "difftool -y"
-	#tbd = "!f() { git diff --name-status \"$1^\" \"$1\"; }; f"
+	acp = "!f() { if [ $# -eq 0 ]; then echo 'usage: git acp \"commit message\"'; return 1; fi; git add -A && git commit -m \"$*\" && git push; }; f"
+	nb = "switch -c"

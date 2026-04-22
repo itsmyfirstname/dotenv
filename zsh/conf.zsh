@@ -119,10 +119,13 @@ export NVM_DIR="$HOME/.nvm"
 # Update ruby cache path
 export GEM_HOME=/home/mehays/.local/ruby/cache
 
-# Pyenv Stuff
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init - zsh)"
+# uv (Python toolchain; replaces pyenv). Pythons/venvs: uv python install, uv venv.
+#
+# Oh My Zsh initializes zsh completion (compinit). We hook into that by sourcing
+# uv's completion only when completion is available in this shell.
+if (( $+commands[uv] )) && (( $+functions[compdef] )); then
+  source <(uv generate-shell-completion zsh)
+fi
 
 export GOPATH="/home/$USER/go/bin"
 
