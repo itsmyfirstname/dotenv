@@ -100,14 +100,16 @@ COMPLETION_WAITING_DOTS="true"
 
 # Add Ruby and local bin to path
 export PATH="/home/$USER/.local/share/gem/ruby/3.4.0/bin:/home/$USER/.local/bin:$PATH"
-#Start sway on start
 
-# Add these to your ~/.config/sway/config or ~/.profile
-export XDG_SESSION_TYPE=wayland
-export XDG_CURRENT_DESKTOP=sway
+# Sway: auto-start and desktop hints are for Arch + tty1 sway sessions only (not Fedora default sessions).
+if [[ ! -r /etc/fedora-release ]]; then
+  # Add these to your ~/.config/sway/config or ~/.profile
+  export XDG_SESSION_TYPE=wayland
+  export XDG_CURRENT_DESKTOP=sway
 
-if [ -z "$WAYLAND_DISPLAY" ] && [ -n "$XDG_VTNR" ] && [ "$XDG_VTNR" -eq 1 ] ; then
-    exec sway 
+  if [ -z "$WAYLAND_DISPLAY" ] && [ -n "$XDG_VTNR" ] && [ "$XDG_VTNR" -eq 1 ]; then
+    exec sway
+  fi
 fi
 
 export NVM_DIR="$HOME/.nvm"

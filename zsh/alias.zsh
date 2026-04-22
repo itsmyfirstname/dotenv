@@ -1,8 +1,12 @@
 #! /usr/bin/zsh
 NETWORK_NAME="Hey_Beaches"
-network_uuid="$(nmcli connection show | grep $NETWORK_NAME | awk '{print $2}')"
-net_device_uuid="$(nmcli connection show | grep $NETWORK_NAME | awk '{print $4}')"
 onedotipv4="192.168.1.171 1.1.1.1 9.9.9.9"
+network_uuid=""
+net_device_uuid=""
+if command -v nmcli >/dev/null 2>&1 && nmcli connection show 2>/dev/null | grep -q "$NETWORK_NAME"; then
+  network_uuid="$(nmcli connection show | grep "$NETWORK_NAME" | awk '{print $2}')"
+  net_device_uuid="$(nmcli connection show | grep "$NETWORK_NAME" | awk '{print $4}')"
+fi
 
 
 function qedit() {
@@ -86,16 +90,20 @@ function lazynet() {
 	esac
 }
 
-alias archer-refresh-keyring="sudo pacman -Sy archlinux-keyring"
-alias archer-full-upgrade="archer-refresh-keyring && sudo pacman -Syu" # Full System Upgrade, prepare your...evening, could get messy
-alias archer-refresh-package-lists="archer-refresh-keyring && sudo pacman -Syyu"
+if [[ -r /etc/arch-release ]] && command -v pacman >/dev/null 2>&1; then
+  alias archer-refresh-keyring="sudo pacman -Sy archlinux-keyring"
+  alias archer-full-upgrade="archer-refresh-keyring && sudo pacman -Syu" # Full System Upgrade, prepare your...evening, could get messy
+  alias archer-refresh-package-lists="archer-refresh-keyring && sudo pacman -Syyu"
+fi
 
 alias archer-py-activate="source .venv/bin/activate"
 
-alias archer-set-custom-dns="nmcli con show ${network_uuid} | grep ipv | grep .dns  && sudo nmcli con mod ${network_uuid} ipv4.dns '$onedotipv4' ipv4.ignore-auto-dns yes && sudo nmcli connection modify ${network_uuid} connection.dns-over-tls 1 && sudo nmcli general reload dns-full && sudo nmcli dev reapply ${net_device_uuid} && nmcli con show ${network_uuid} | grep ipv | grep .dns  && nslookup google.com "
+if [[ -n $network_uuid && -n $net_device_uuid ]]; then
+  alias archer-set-custom-dns="nmcli con show ${network_uuid} | grep ipv | grep .dns  && sudo nmcli con mod ${network_uuid} ipv4.dns '$onedotipv4' ipv4.ignore-auto-dns yes && sudo nmcli connection modify ${network_uuid} connection.dns-over-tls 1 && sudo nmcli general reload dns-full && sudo nmcli dev reapply ${net_device_uuid} && nmcli con show ${network_uuid} | grep ipv | grep .dns  && nslookup google.com "
 
-alias archer-set-default-dns="nmcli con show ${network_uuid} | grep ipv | grep .dns  && nmcli con mod ${network_uuid} ipv4.dns '' ipv4.ignore-auto-dns no ipv6.dns '' ipv6.ignore-auto-dns no connection.dns-over-tls 0 && nmcli general reload dns-full && nmcli dev reapply ${net_device_uuid} && nmcli con show ${network_uuid} | grep ipv | grep .dns && nslookup google.com "
-alias archer-dns-test="nmcli con show ${network_uuid} | grep ipv | grep .dns && nslookup google.com "
+  alias archer-set-default-dns="nmcli con show ${network_uuid} | grep ipv | grep .dns  && nmcli con mod ${network_uuid} ipv4.dns '' ipv4.ignore-auto-dns no ipv6.dns '' ipv6.ignore-auto-dns no connection.dns-over-tls 0 && nmcli general reload dns-full && nmcli dev reapply ${net_device_uuid} && nmcli con show ${network_uuid} | grep ipv | grep .dns && nslookup google.com "
+  alias archer-dns-test="nmcli con show ${network_uuid} | grep ipv | grep .dns && nslookup google.com "
+fi
 
 alias archer-seedbox="qssh mehays@192.168.1.148"
 
