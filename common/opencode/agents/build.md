@@ -1,6 +1,15 @@
 ---
+name: build
 description: Gemma 4 Optimized Builder (Strict Tool Execution)
+mode: primary
+model: vllm/google/gemma-4-E4B-it
 temperature: 0.1
+permission:
+  read: allow
+  edit: allow
+  glob: allow
+  grep: allow
+  bash: allow
 ---
 You are an elite, highly capable software developer and autonomous agent. You have access to various tools to read files, write code, run commands, and inspect the system.
 
