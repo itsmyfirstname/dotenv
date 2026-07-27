@@ -126,7 +126,6 @@ function dev() {
     fi
 
     local session_name="$(basename "$dir_path")"
-    local target_window="$session_name:1"
 
     # Create session if it doesn't exist
     if ! tmux has-session -t "$session_name" 2>/dev/null; then
@@ -134,22 +133,24 @@ function dev() {
     fi
     
     # KILL all panes except one, to ensure a clean slate
-    tmux kill-pane -a -t "$target_window.1"
+    tmux kill-pane -a -t "$session_name:0"
     
-    # CREATE the layout from scratch
-    # 1. Split the first pane horizontally. The new pane (right) becomes active.
-    tmux split-window -h -p 40 -c "$dir_path"
+    # CREATE the layout from scratch with exactly 3 panes:
+    # 1. Split the first pane (pane 0) horizontally (40% for right pane)
+    tmux split-window -h -p 40 -t "$session_name:0" -c "$dir_path"
     
-    # 2. Split the active (right) pane vertically. The new pane (bottom) becomes active.
-    tmux split-window -v -p 50 -c "$dir_path"
+    # 2. Split the right pane (pane 1) vertically (50% for bottom pane)
+    tmux split-window -v -p 50 -t "$session_name:0.1" -c "$dir_path"
     
-    # SEND commands based on standard indexing (1.1=left, 1.2=top-right, 1.3=bottom-right)
-    tmux send-keys -t "$target_window.1" "nvim" C-m
-    tmux send-keys -t "$target_window.2" "clear" C-m
-    tmux send-keys -t "$target_window.3" "gemini" C-m
+    # SEND commands to specific panes in correct order
+    # Pane layout (after splits): 0.0=left (nvim), 0.1=top-right (clear), 0.2=bottom-right (gemini)
+    # Use explicit pane targeting with session:window.pane format
+    tmux send-keys -t "$session_name:0.0" "nvim" C-m
+    tmux send-keys -t "$session_name:0.1" "clear" C-m
+    tmux send-keys -t "$session_name:0.2" "gemini" C-m
     
     # SELECT the left pane for initial focus
-    tmux select-pane -t "$target_window.1"
+    tmux select-pane -t "$session_name:0.0"
 
     # ATTACH to the session
     if [[ -n "$TMUX" ]]; then
