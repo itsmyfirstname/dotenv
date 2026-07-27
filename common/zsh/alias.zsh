@@ -143,11 +143,11 @@ function dev() {
     tmux split-window -v -p 50 -t "$session_name:0.1" -c "$dir_path"
     
     # SEND commands to specific panes in correct order
-    # Pane layout (after splits): 0.0=left (nvim), 0.1=top-right (clear), 0.2=bottom-right (gemini)
+    # Pane layout (after splits): 0.0=left (nvim), 0.1=top-right (clear), 0.2=bottom-right (opencode)
     # Use explicit pane targeting with session:window.pane format
     tmux send-keys -t "$session_name:0.0" "nvim" C-m
     tmux send-keys -t "$session_name:0.1" "clear" C-m
-    tmux send-keys -t "$session_name:0.2" "gemini" C-m
+    tmux send-keys -t "$session_name:0.2" "opencode" C-m
     
     # SELECT the left pane for initial focus
     tmux select-pane -t "$session_name:0.0"
