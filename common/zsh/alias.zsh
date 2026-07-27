@@ -156,7 +156,7 @@ function dev() {
     if [[ -n "$TMUX" ]]; then
         tmux switch-client -t "$session_name"
     else
-        exec tmux attach-session -t "$session_name"
+        tmux attach-session -t "$session_name"
     fi
 }
 
