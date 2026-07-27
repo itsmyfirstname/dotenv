@@ -16,9 +16,24 @@
           }
         }
       }
+    },
+    "llamacpp": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "llamacpp",
+      "options": {
+        "baseURL": "http://192.168.1.201:9000/v1"
+      },
+      "models": {
+        "qwen": {
+          "name": "Qwen3-Coder-30B-A3B-Instruct-UD-Q4_K_XL.gguf",
+          "limit": {
+            "context": 56832,
+            "output": 4096
+          }
+        }
+      }
     }
   },
-  "model": "google/gemma-4-E4B-it"
-//  "instructions": ["CONVENTIONS.md"]
+  "model": "llamacpp/qwen"
+  // "instructions": ["CONVENTIONS.md"]
 }
-

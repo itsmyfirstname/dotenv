@@ -130,3 +130,8 @@ fi
 export GOPATH="/home/$USER/go/bin"
 
 export PATH="$GOPATH:$PATH"
+
+# Add your explicit project details to your profile
+export GOOGLE_CLOUD_PROJECT="my-home-320002"
+export VERTEX_LOCATION="us-east4"
+

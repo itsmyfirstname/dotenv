@@ -108,4 +108,54 @@ alias dot-venv-activate="source .venv/bin/activate"
 alias dot-ssh-seedbox="qssh mehays@192.168.1.148"
 alias dot-tmux="tmux new-session -A -s main"
 alias dot-ls-local-ports="sudo ss -tulpn"
-alias hey-git-mirror-this-repo="git clone --bare $1 && cd $(basename $1) && git push --mirror $2"
+#alias hey-git-mirror-this-repo="git clone --bare ${1} && cd $(basename ${1}) && git push --mirror ${2}"
+#alias hey-git-mirror-this-repo="echo $1 && echo $2"
+alias codium="flatpak run com.vscodium.codium "
+alias zed="flatpak run dev.zed.Zed "
+
+function dev() {
+    if [[ -z "$1" ]]; then
+        echo "Usage: dev <directory_path>"
+        return 1
+    fi
+
+    local dir_path="$(realpath "$1")"
+    if [[ ! -d "$dir_path" ]]; then
+        echo "Error: Directory '$dir_path' does not exist."
+        return 1
+    fi
+
+    local session_name="$(basename "$dir_path")"
+    local target_window="$session_name:1"
+
+    # Create session if it doesn't exist
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        tmux new-session -d -s "$session_name" -c "$dir_path"
+    fi
+    
+    # KILL all panes except one, to ensure a clean slate
+    tmux kill-pane -a -t "$target_window.1"
+    
+    # CREATE the layout from scratch
+    # 1. Split the first pane horizontally. The new pane (right) becomes active.
+    tmux split-window -h -p 40 -c "$dir_path"
+    
+    # 2. Split the active (right) pane vertically. The new pane (bottom) becomes active.
+    tmux split-window -v -p 50 -c "$dir_path"
+    
+    # SEND commands based on standard indexing (1.1=left, 1.2=top-right, 1.3=bottom-right)
+    tmux send-keys -t "$target_window.1" "nvim" C-m
+    tmux send-keys -t "$target_window.2" "clear" C-m
+    tmux send-keys -t "$target_window.3" "gemini" C-m
+    
+    # SELECT the left pane for initial focus
+    tmux select-pane -t "$target_window.1"
+
+    # ATTACH to the session
+    if [[ -n "$TMUX" ]]; then
+        tmux switch-client -t "$session_name"
+    else
+        exec tmux attach-session -t "$session_name"
+    fi
+}
+
