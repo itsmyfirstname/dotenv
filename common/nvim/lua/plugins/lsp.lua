@@ -1,3 +1,5 @@
+local gopls_version = 'v0.21.1'
+
 return {
   'neovim/nvim-lspconfig',
   event = { 'BufReadPre', 'BufNewFile' },
@@ -251,6 +253,13 @@ return {
     end
 
     local install = vim.tbl_filter(configure, vim.tbl_keys(opts.servers))
+    install = vim.tbl_map(function(server)
+      if server == 'gopls' then
+        return ('gopls@%s'):format(gopls_version)
+      end
+      return server
+    end, install)
+
     if have_mason then
       require('mason-lspconfig').setup {
         ensure_installed = vim.list_extend(install, LazyVim.opts('mason-lspconfig.nvim').ensure_installed or {}),

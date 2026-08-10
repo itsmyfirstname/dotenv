@@ -3,8 +3,6 @@ return {
   'folke/which-key.nvim',
   'ryanoasis/vim-devicons',
   { 'folke/neoconf.nvim', cmd = 'Neoconf' },
-  { 'folke/lazy.nvim', version = false },
-  { 'LazyVim/LazyVim', version = false },
   {
     'nickjvandyke/opencode.nvim',
     version = '*', -- Latest stable release
