@@ -147,6 +147,11 @@ return {
           },
         },
         gopls = {},
+        basedpyright = {
+          cmd = { "basedpyright-langserver", "--stdio" },
+          single_file_support = true,
+          mason = false, -- Don't use Mason for basedpyright since it's managed by uv
+        },
       },
       -- you can do any additional lsp server setup here
       -- return true if you don't want this server to be setup with lspconfig
