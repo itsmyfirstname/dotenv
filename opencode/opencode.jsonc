@@ -25,7 +25,7 @@
       },
       "models": {
         "qwen": {
-          "name": "Qwen3-Coder-30B-A3B-Instruct-UD-Q4_K_XL.gguf",
+          "name": "Qwen3.8-27B-Uncensored-Q4_K_M.gguf",
           "limit": {
             "context": 56832,
             "output": 4096
@@ -34,6 +34,15 @@
       }
     }
   },
-  "model": "llamacpp/qwen"
+  "model": "llamacpp/qwen",
+  "mcp": {
+    "home-assistant": {
+      "type": "local",
+      "command": ["uv", "--project", "/home/mehays/projects/homelab/lib/python/home-assistant-mcp", "run", "home-assistant-mcp"],
+      "cwd": "/home/mehays/projects/homelab/lib/python/home-assistant-mcp",
+      "enabled": true,
+      "timeout": 30000
+    }
+  }
   // "instructions": ["CONVENTIONS.md"]
 }
