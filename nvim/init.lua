@@ -35,10 +35,13 @@ vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagn
 vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "[p]op open diagnostic window" })
 
 -- Anchors (lua/custom/anchors.nvim): markdown entries attached to TODO/NOTE/FIX comments
-vim.keymap.set("n", "<leader>aa", "<cmd>Anchor scan<cr>", { desc = "[a]nchors: scan repo" })
-vim.keymap.set("n", "<leader>an", "<cmd>Anchor new<cr>", { desc = "[a]nchors: [n]ew anchor + entry" })
+vim.keymap.set("n", "<leader>aa", "<cmd>Anchor new<cr>", { desc = "[a]nchors: [a]dd anchor + entry" })
+vim.keymap.set("n", "<leader>as", "<cmd>Anchor scan<cr>", { desc = "[a]nchors: [s]can current repo" })
+-- prefilled, not executed: edit the path (defaults to home) and press enter
+vim.keymap.set("n", "<leader>aS", ":Anchor scan ~", { desc = "[a]nchors: [S]can a location (default ~)" })
 vim.keymap.set("n", "<leader>ae", "<cmd>Anchor edit<cr>", { desc = "[a]nchors: [e]dit entry under cursor" })
-vim.keymap.set("n", "<leader>ai", "<cmd>Anchor import<cr>", { desc = "[a]nchors: [i]mport unlinked anchors" })
+vim.keymap.set("n", "<leader>ai", "<cmd>Anchor import<cr>", { desc = "[a]nchors: [i]mport anchor near cursor" })
+vim.keymap.set("n", "<leader>aI", "<cmd>Anchor import all<cr>", { desc = "[a]nchors: [I]mport all unlinked anchors" })
 vim.keymap.set("n", "<leader>ar", "<cmd>Anchor relink<cr>", { desc = "[a]nchors: [r]elink orphaned entries" })
 
 require("config.lazy")

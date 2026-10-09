@@ -61,16 +61,20 @@ end
 ---@field status "linked"|"unlinked"|"orphan"
 ---@field anchor? anchors.Anchor
 ---@field entry? table
+---@field root string repo root on this machine
+---@field repo string portable repo key
+---@field show_repo? boolean prefix the repo key when listing several repos
 
 ---@param row anchors.Row
 ---@return string
 function M.format(row)
+  local prefix = ICONS[row.status] .. " " .. (row.show_repo and (row.repo .. "  ") or "")
   if row.anchor then
     local a = row.anchor
-    return ("%s %s:%d  %s"):format(ICONS[row.status], a.path, a.lnum, a.title)
+    return ("%s%s:%d  %s"):format(prefix, a.path, a.lnum, a.title)
   end
   local e = row.entry
-  return ("%s %s:%s  %s"):format(ICONS.orphan, e.path or "?", e.line or "?", e.title or e.id)
+  return ("%s%s:%s  %s"):format(prefix, e.path or "?", e.line or "?", e.title or e.id)
 end
 
 --- Pick from anchor rows. Telescope when available, vim.ui.select otherwise.

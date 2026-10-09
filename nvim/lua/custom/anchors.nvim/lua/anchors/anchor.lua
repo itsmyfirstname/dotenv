@@ -111,44 +111,77 @@ function M.build(root, items, opts)
   return anchors
 end
 
---- Anchor on line `lnum` (1-based) of buffer `buf`, or nil.
+--- Anchor closest to line `lnum` (1-based) of buffer `buf`, within `radius` lines.
+--- Ties go to the anchor above, since comments usually sit above the code they describe.
 ---@param buf integer
 ---@param lnum integer
 ---@param opts table
+---@param radius? integer defaults to 0 (exact line only)
 ---@return anchors.Anchor?, string? root
-function M.at(buf, lnum, opts)
+function M.near(buf, lnum, opts, radius)
+  radius = radius or 0
   local abs = vim.api.nvim_buf_get_name(buf)
   local root = require("anchors.repo").root(abs)
   if abs == "" or not root then
     return nil
   end
+  -- read from the top so occurrence indexes match a full scan
   local items = {}
-  for i, text in ipairs(vim.api.nvim_buf_get_lines(buf, 0, lnum, false)) do
+  for i, text in ipairs(vim.api.nvim_buf_get_lines(buf, 0, lnum + radius, false)) do
     table.insert(items, { abs = abs, lnum = i, text = text })
   end
+  local best, best_dist
   for _, anchor in ipairs(M.build(root, items, opts)) do
-    if anchor.lnum == lnum then
-      return anchor, root
+    local dist = math.abs(anchor.lnum - lnum)
+    if dist <= radius and (not best or dist < best_dist or (dist == best_dist and anchor.lnum < best.lnum)) then
+      best, best_dist = anchor, dist
     end
+  end
+  if best then
+    return best, root
   end
 end
 
---- Scan a repo with todo-comments' ripgrep search.
----@param root string
+--- Anchor exactly on line `lnum` (1-based) of buffer `buf`, or nil.
+---@param buf integer
+---@param lnum integer
 ---@param opts table
----@param cb fun(anchors: anchors.Anchor[])
-function M.scan(root, opts, cb)
+---@return anchors.Anchor?, string? root
+function M.at(buf, lnum, opts)
+  return M.near(buf, lnum, opts, 0)
+end
+
+--- Scan a directory with todo-comments' ripgrep search. Results are grouped by the
+--- git repo each file lives in; files outside a repo are not anchors and are dropped.
+---@param dir string
+---@param opts table
+---@param cb fun(groups: table<string, anchors.Anchor[]>) repo root -> anchors
+function M.scan(dir, opts, cb)
   if not tc_config() then
     vim.notify("anchors: todo-comments is not loaded", vim.log.levels.ERROR)
     return
   end
+  local repo = require("anchors.repo")
   require("todo-comments.search").search(function(results)
-    local items = {}
+    local roots, by_root = {}, {}
     for _, r in ipairs(results) do
-      table.insert(items, { abs = vim.fs.normalize(vim.fn.fnamemodify(r.filename, ":p")), lnum = r.lnum, text = r.line })
+      local abs = vim.fs.normalize(vim.fn.fnamemodify(r.filename, ":p"))
+      local parent = vim.fs.dirname(abs)
+      if roots[parent] == nil then
+        roots[parent] = repo.root(abs) or false
+      end
+      local root = roots[parent]
+      if root then
+        by_root[root] = by_root[root] or {}
+        table.insert(by_root[root], { abs = abs, lnum = r.lnum, text = r.line })
+      end
     end
-    cb(M.build(root, items, opts))
-  end, { cwd = root, disable_not_found_warnings = true })
+    local groups = {}
+    for root, items in pairs(by_root) do
+      groups[root] = M.build(root, items, opts)
+    end
+    cb(groups)
+  end, { cwd = dir, disable_not_found_warnings = true })
 end
 
 return M

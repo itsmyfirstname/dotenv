@@ -12,6 +12,8 @@ M.opts = {
   store = "~/.anchors",
   -- canonical todo-comments keywords that count as anchors, nil = all of them
   keywords = nil,
+  -- how many lines above/below the cursor :Anchor import looks for an anchor
+  import_radius = 5,
 }
 
 local function warn(msg)
@@ -76,33 +78,53 @@ function M.new()
   end)
 end
 
---- Scan the repo and pair anchors with stored entries.
+--- Scan `dir` and pair anchors with stored entries, per repo.
+---@param dir string
+---@param cb fun(rows: anchors.Row[])
+local function collect(dir, cb)
+  anchor.scan(dir, M.opts, function(groups)
+    local rows = {}
+    for root, anchors in pairs(groups) do
+      local key = repo.key(root)
+      local entries = store.list(M.opts, key)
+      for _, a in ipairs(anchors) do
+        local entry = entries[a.id]
+        entries[a.id] = nil
+        table.insert(rows, { status = entry and "linked" or "unlinked", anchor = a, entry = entry, root = root, repo = key })
+      end
+      -- whatever is left has lost its anchor (comment edited, moved or deleted),
+      -- unless the scan only covered part of the repo
+      if vim.fs.relpath(dir, root) then
+        for _, entry in pairs(entries) do
+          table.insert(rows, { status = "orphan", entry = entry, root = root, repo = key })
+        end
+      end
+    end
+    cb(rows)
+  end)
+end
+
+--- Like collect, for the repo of the current buffer.
 ---@param cb fun(rows: anchors.Row[], root: string)
-local function collect(cb)
+local function collect_repo(cb)
   local root = repo.root()
   if not root then
     return warn("not inside a git repo")
   end
-  anchor.scan(root, M.opts, function(anchors)
-    local entries = store.list(M.opts, repo.key(root))
-    local rows = {}
-    for _, a in ipairs(anchors) do
-      local entry = entries[a.id]
-      entries[a.id] = nil
-      table.insert(rows, { status = entry and "linked" or "unlinked", anchor = a, entry = entry })
-    end
-    -- whatever is left has lost its anchor (comment edited, moved or deleted)
-    for _, entry in pairs(entries) do
-      table.insert(rows, { status = "orphan", entry = entry })
-    end
-    cb(rows, root)
+  collect(root, function(rows)
+    cb(
+      vim.tbl_filter(function(row)
+        return row.root == root
+      end, rows),
+      root
+    )
   end)
 end
 
---- Reconnect orphaned entries to unlinked anchors.
+--- Reconnect orphaned entries to unlinked anchors in the current repo.
 ---@param only? table restrict to this single orphaned entry
 function M.relink(only)
-  collect(function(rows, root)
+  collect_repo(function(rows, root)
     local key = repo.key(root)
     local orphans, pool = {}, {}
     for _, row in ipairs(rows) do
@@ -126,42 +148,88 @@ function M.relink(only)
   end)
 end
 
---- Picker over every anchor in the repo plus orphaned entries.
-function M.scan()
-  collect(function(rows, root)
+---@param rows anchors.Row[]
+local function pick(rows)
+  ui.pick(rows, {
+    open = function(row)
+      if row.anchor then
+        return open_anchor(row.anchor, row.root)
+      end
+      ui.open_entry(row.entry.file, { title = row.entry.title or row.entry.id, footer = "orphaned" })
+    end,
+    jump = function(row)
+      if row.anchor then
+        return ui.jump(row.anchor.abs, row.anchor.lnum)
+      end
+      local abs = row.entry.path and vim.fs.joinpath(row.root, row.entry.path)
+      if not abs or not vim.uv.fs_stat(abs) then
+        return warn("orphaned entry's source no longer exists: " .. tostring(row.entry.path))
+      end
+      ui.jump(abs, tonumber(row.entry.line) or 1)
+    end,
+    relink = function(row)
+      if row.status ~= "orphan" then
+        return warn("only orphaned (✗) entries can be relinked")
+      end
+      if row.root ~= repo.root() then
+        return warn("relink from inside " .. row.repo)
+      end
+      M.relink(row.entry)
+    end,
+  })
+end
+
+--- Picker over anchors plus orphaned entries. No `dir`: the current repo.
+--- With `dir`: every git repo found under it (e.g. your home directory).
+---@param dir? string
+function M.scan(dir)
+  if not dir then
+    return collect_repo(function(rows, root)
+      if #rows == 0 then
+        return warn("no anchors found in " .. root)
+      end
+      pick(rows)
+    end)
+  end
+  dir = vim.fs.normalize(vim.fn.expand(dir))
+  if vim.fn.isdirectory(dir) == 0 then
+    return warn("not a directory: " .. dir)
+  end
+  vim.notify("anchors: scanning " .. dir .. " ...")
+  collect(dir, function(rows)
     if #rows == 0 then
-      return warn("no anchors found in " .. root)
+      return warn("no anchors in git repos under " .. dir)
     end
-    ui.pick(rows, {
-      open = function(row)
-        if row.anchor then
-          return open_anchor(row.anchor, root)
-        end
-        ui.open_entry(row.entry.file, { title = row.entry.title or row.entry.id, footer = "orphaned" })
-      end,
-      jump = function(row)
-        if row.anchor then
-          return ui.jump(row.anchor.abs, row.anchor.lnum)
-        end
-        local abs = row.entry.path and vim.fs.joinpath(root, row.entry.path)
-        if not abs or not vim.uv.fs_stat(abs) then
-          return warn("orphaned entry's source no longer exists: " .. tostring(row.entry.path))
-        end
-        ui.jump(abs, tonumber(row.entry.line) or 1)
-      end,
-      relink = function(row)
-        if row.status ~= "orphan" then
-          return warn("only orphaned (✗) entries can be relinked")
-        end
-        M.relink(row.entry)
-      end,
-    })
+    local repos = {}
+    for _, row in ipairs(rows) do
+      repos[row.repo] = true
+    end
+    if vim.tbl_count(repos) > 1 then
+      for _, row in ipairs(rows) do
+        row.show_repo = true
+      end
+    end
+    pick(rows)
   end)
 end
 
---- Create entries for every anchor in the repo that does not have one.
+--- Create the entry for the anchor at, or nearest to, the cursor without opening it.
 function M.import()
-  collect(function(rows, root)
+  local row = vim.api.nvim_win_get_cursor(0)[1]
+  local a, root = anchor.near(0, row, M.opts, M.opts.import_radius)
+  if not a then
+    return warn(("no anchor within %d lines of the cursor"):format(M.opts.import_radius))
+  end
+  local _, created = store.ensure(M.opts, repo.key(root), a)
+  if not created then
+    return vim.notify(("anchors: %s already has an entry (%s)"):format(a.title, a.id))
+  end
+  vim.notify(("anchors: imported %s:%d  %s"):format(a.path, a.lnum, a.title))
+end
+
+--- Create entries for every anchor in the current repo that does not have one.
+function M.import_all()
+  collect_repo(function(rows, root)
     local pending = vim.tbl_filter(function(row)
       return row.status == "unlinked"
     end, rows)
@@ -196,10 +264,17 @@ function M.add_keyword(name, kw_opts)
 end
 
 local subcommands = {
-  scan = M.scan,
+  scan = function(args)
+    M.scan(args[1])
+  end,
   new = M.new,
   edit = M.edit,
-  import = M.import,
+  import = function(args)
+    if args[1] == "all" then
+      return M.import_all()
+    end
+    M.import()
+  end,
   relink = function()
     M.relink()
   end,
@@ -225,8 +300,15 @@ function M.setup(opts)
     nargs = "*",
     desc = "Anchored knowledge entries",
     complete = function(_, line)
-      if #vim.split(line, "%s+") > 2 then
-        return {}
+      local parts = vim.split(line, "%s+")
+      if #parts > 2 then
+        if #parts ~= 3 then
+          return {}
+        end
+        if parts[2] == "scan" then
+          return vim.fn.getcompletion(parts[3], "dir")
+        end
+        return parts[2] == "import" and { "all" } or {}
       end
       return vim.tbl_keys(subcommands)
     end,
