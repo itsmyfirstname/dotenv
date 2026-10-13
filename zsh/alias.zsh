@@ -160,3 +160,4 @@ function dev() {
     fi
 }
 
+alias dot-mount-nas='sudo mount -t nfs 192.168.1.190:/mnt/atlas/video ~/nas/'
