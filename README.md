@@ -13,6 +13,7 @@ Machine config repo with a split between shared configs and OS-specific configs.
 - `common/`
   - `common/nvim`
   - `common/zsh`
+  - `common/tmux`
 - `arch/`
   - Arch-focused desktop/system configs (sway, waybar, kitty, etc.)
 - `scripts/`
@@ -30,6 +31,7 @@ This currently manages:
 
 - `~/.config/nvim` -> `common/nvim`
 - `~/.config/zsh` -> `common/zsh`
+- `~/.tmux.conf` -> `common/tmux/tmux.conf`
 - `~/.gitconfig` -> `.gitconfig`
 
 If a path already exists and is not the expected link target, the script backs it up as `*.bak.<timestamp>` and then creates the new symlink.

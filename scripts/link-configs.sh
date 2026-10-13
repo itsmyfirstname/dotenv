@@ -50,4 +50,5 @@ ensure_link() {
 
 ensure_link "${REPO_ROOT}/common/nvim" "${CONFIG_DIR}/nvim" "dir"
 ensure_link "${REPO_ROOT}/common/zsh" "${CONFIG_DIR}/zsh" "dir"
+ensure_link "${REPO_ROOT}/common/tmux/tmux.conf" "${HOME}/.tmux.conf" "file"
 ensure_link "${REPO_ROOT}/.gitconfig" "${HOME}/.gitconfig" "file"

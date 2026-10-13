@@ -21,4 +21,5 @@ Electron/
 Docker\ Desktop/
 calibre/
 systemd/
-
+*.pem
+nix/workspace/*

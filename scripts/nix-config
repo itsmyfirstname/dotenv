@@ -1,0 +1,14 @@
+#!/usr/bin/env  bash
+
+sudo -i
+parted /dev/sda -- mklabel gpt                      # Need the /dev partition to be a param
+
+parted /dev/sda -- mkpart root ext4 512MB -8GB      # Sizes also param
+
+parted /dev/sda -- mkpart swap linux-swap -8GB 100% # Swap size
+
+parted /dev/sda -- mkpart ESP fat32 1MB 512MB       # Boot partition
+# Finally, the boot partition. NixOS by default uses the ESP (EFI system partition) as its /boot partition. It uses the initially reserved 512MiB at the start of the disk.
+parted /dev/sda -- set 3 esp on
+
+
