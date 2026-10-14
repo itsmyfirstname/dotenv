@@ -1,9 +1,17 @@
 -- An anchor is a todo-comments style comment ("TODO: ...", "NOTE: ...").
--- Its fingerprint is derived only from portable data:
+-- Once it has an entry it carries a random id right after the keyword:
+--   TODO: (hj6shjgdf) message
+-- The id survives file moves, renames and message edits, so the entry follows it.
+-- Untagged anchors fall back to a fingerprint derived only from portable data:
 --   repo relative path + keyword + normalized message + occurrence index
 -- Line numbers are deliberately left out: they shift on every edit above the
 -- comment, which would orphan the entry. The line is kept as a hint only.
 local M = {}
+
+-- crockford base32: no i/l/o/u, so ordinary words in parens are rarely mistaken for ids
+local ALPHABET = "0123456789abcdefghjkmnpqrstvwxyz"
+local ID_LEN = 9
+local ID_PATTERN = string.rep("[0-9a-hjkmnp-tv-z]", ID_LEN)
 
 local function tc_config()
   local ok, config = pcall(require, "todo-comments.config")
@@ -37,15 +45,32 @@ function M.normalize(message)
   return vim.trim(message)
 end
 
----@class anchors.Parsed
----@field keyword string raw keyword as written
----@field message string normalized text after the keyword
----@field title string "KEYWORD: message"
+---@param id? string
+---@return boolean
+function M.is_id(id)
+  return id ~= nil and id:match("^" .. ID_PATTERN .. "$") ~= nil
+end
 
---- Parse a single line of text into an anchor, or nil.
+--- Random anchor id, retried while `taken(id)` says it is in use.
+---@param taken? fun(id: string): boolean
+---@return string
+function M.new_id(taken)
+  while true do
+    local id = vim.uv.random(ID_LEN):gsub(".", function(c)
+      local i = c:byte() % #ALPHABET + 1
+      return ALPHABET:sub(i, i)
+    end)
+    if not (taken and taken(id)) then
+      return id
+    end
+  end
+end
+
+--- Split a line around its keyword: text up to and including the keyword, and
+--- whatever follows the keyword's colon.
 ---@param text string
----@return anchors.Parsed?
-function M.parse(text)
+---@return string? keyword, string? head, string? rest
+local function split(text)
   if not tc_config() then
     return nil
   end
@@ -57,8 +82,39 @@ function M.parse(text)
   if not kw_start then
     return nil
   end
-  local message = M.normalize(text:sub(kw_end + 1):gsub("^%s*:%s*", ""))
-  return { keyword = kw, message = message, title = kw .. ": " .. message }
+  local rest = text:sub(kw_end + 1):gsub("^%s*:%s*", "")
+  return kw, text:sub(1, kw_end), rest
+end
+
+---@class anchors.Parsed
+---@field keyword string raw keyword as written
+---@field id? string id embedded in the comment, "(id)" right after the keyword
+---@field message string normalized text after the keyword (and id)
+---@field title string "KEYWORD: message"
+
+--- Parse a single line of text into an anchor, or nil.
+---@param text string
+---@return anchors.Parsed?
+function M.parse(text)
+  local kw, _, rest = split(text)
+  if not kw then
+    return nil
+  end
+  local id, after = rest:match("^%((" .. ID_PATTERN .. ")%)%s*(.*)$")
+  local message = M.normalize(id and after or rest)
+  return { keyword = kw, id = id, message = message, title = kw .. ": " .. message }
+end
+
+--- `text` with "(id)" inserted after its keyword.
+---@param text string
+---@param id string
+---@return string?
+function M.tag_text(text, id)
+  local kw, head, rest = split(text)
+  if not kw then
+    return nil
+  end
+  return head .. ": (" .. id .. ")" .. (rest == "" and "" or " " .. rest)
 end
 
 ---@param path string repo relative path
@@ -74,7 +130,8 @@ function M.fingerprint(path, parsed, occurrence)
 end
 
 ---@class anchors.Anchor: anchors.Parsed
----@field id string
+---@field id string embedded id, or the content fingerprint when untagged
+---@field tagged boolean whether `id` is embedded in the comment
 ---@field path string repo relative path
 ---@field abs string absolute path on this machine (never stored)
 ---@field lnum integer
@@ -104,11 +161,47 @@ function M.build(root, items, opts)
         abs = item.abs,
         lnum = item.lnum,
       })
-      anchor.id = M.fingerprint(rel, parsed, seen[key])
+      anchor.tagged = parsed.id ~= nil
+      anchor.id = parsed.id or M.fingerprint(rel, parsed, seen[key])
       table.insert(anchors, anchor)
     end
   end
   return anchors
+end
+
+--- Write `id` into an untagged anchor's comment: into its buffer when loaded
+--- (saved only if it had no unsaved changes), straight to disk otherwise.
+--- On success `a` becomes tagged with `id`.
+---@param a anchors.Anchor
+---@param id string
+---@return boolean ok
+function M.write_tag(a, id)
+  local buf = vim.fn.bufnr(a.abs)
+  local loaded = buf ~= -1 and vim.api.nvim_buf_is_loaded(buf)
+  local lines = loaded and vim.api.nvim_buf_get_lines(buf, 0, -1, false) or vim.fn.readfile(a.abs, "b")
+  local text = lines[a.lnum]
+  -- the line must still hold this exact anchor
+  local parsed = text and M.parse(text)
+  if not parsed or parsed.id or parsed.keyword ~= a.keyword or parsed.message ~= a.message then
+    return false
+  end
+  local tagged = M.tag_text(text, id)
+  if loaded then
+    local was_modified = vim.bo[buf].modified
+    vim.api.nvim_buf_set_lines(buf, a.lnum - 1, a.lnum, false, { tagged })
+    if not was_modified then
+      vim.api.nvim_buf_call(buf, function()
+        vim.cmd("silent noautocmd write")
+      end)
+    end
+  else
+    lines[a.lnum] = tagged
+    if vim.fn.writefile(lines, a.abs, "b") ~= 0 then
+      return false
+    end
+  end
+  a.id, a.tagged = id, true
+  return true
 end
 
 --- Anchor closest to line `lnum` (1-based) of buffer `buf`, within `radius` lines.

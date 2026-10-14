@@ -20,9 +20,45 @@ local function warn(msg)
   vim.notify("anchors: " .. msg, vim.log.levels.WARN)
 end
 
+---@param key string repo key
+---@return string
+local function fresh_id(key)
+  return anchor.new_id(function(id)
+    return vim.uv.fs_stat(store.path(M.opts, key, id)) ~= nil
+  end)
+end
+
+--- Embed an id in an untagged anchor's comment so its entry survives moves and
+--- edits. An entry stored under the old content fingerprint follows it.
+---@param a anchors.Anchor
+---@param root string
+---@param id? string id to embed, a fresh one by default
+---@return boolean ok
+local function tag(a, root, id)
+  if a.tagged then
+    return true
+  end
+  local key = repo.key(root)
+  local legacy = store.path(M.opts, key, a.id)
+  if not anchor.write_tag(a, id or fresh_id(key)) then
+    warn(("could not write an id into %s:%d, has the line changed?"):format(a.path, a.lnum))
+    return false
+  end
+  if vim.uv.fs_stat(legacy) then
+    local _, err = store.move(M.opts, key, { file = legacy }, a)
+    if err then
+      warn(("could not move entry %s to %s: %s"):format(vim.fs.basename(legacy), a.id, err))
+    end
+  end
+  return true
+end
+
 ---@param a anchors.Anchor
 ---@param root string
 local function open_anchor(a, root)
+  if not tag(a, root) then
+    return
+  end
   local file = store.ensure(M.opts, repo.key(root), a)
   ui.open_entry(file, { title = a.title, footer = ("%s:%d"):format(a.path, a.lnum), line = a.lnum })
 end
@@ -48,7 +84,8 @@ end
 --- Prompt for a keyword and title, insert the comment above the cursor and open its entry.
 function M.new()
   local buf = vim.api.nvim_get_current_buf()
-  if not repo.root(vim.api.nvim_buf_get_name(buf)) then
+  local root = repo.root(vim.api.nvim_buf_get_name(buf))
+  if not root then
     return warn("buffer is not inside a git repo")
   end
   vim.ui.select(M.anchor_keywords(), { prompt = "Anchor keyword" }, function(kw)
@@ -63,13 +100,13 @@ function M.new()
       local current = vim.api.nvim_buf_get_lines(buf, row - 1, row, false)[1] or ""
       local indent = current:match("^%s*")
       local cs = vim.bo[buf].commentstring ~= "" and vim.bo[buf].commentstring or "# %s"
-      local text = kw .. ": " .. anchor.normalize(title)
+      local text = ("%s: (%s) %s"):format(kw, fresh_id(repo.key(root)), anchor.normalize(title))
       local line = indent .. cs:gsub("%%s", function()
         return text
       end)
       vim.api.nvim_buf_set_lines(buf, row - 1, row - 1, false, { line })
       vim.api.nvim_win_set_cursor(0, { row, #line })
-      local a, root = anchor.at(buf, row, M.opts)
+      local a = anchor.at(buf, row, M.opts)
       if not a then
         return warn("inserted comment was not recognised as an anchor: " .. line)
       end
@@ -87,16 +124,23 @@ local function collect(dir, cb)
     for root, anchors in pairs(groups) do
       local key = repo.key(root)
       local entries = store.list(M.opts, key)
+      local claimed = {}
       for _, a in ipairs(anchors) do
         local entry = entries[a.id]
-        entries[a.id] = nil
+        if claimed[a.id] and a.tagged then
+          -- a copy pasted comment: both point at the same entry
+          warn(("id %s appears more than once, at %s:%d and %s:%d"):format(a.id, claimed[a.id].path, claimed[a.id].lnum, a.path, a.lnum))
+        end
+        claimed[a.id] = claimed[a.id] or a
         table.insert(rows, { status = entry and "linked" or "unlinked", anchor = a, entry = entry, root = root, repo = key })
       end
-      -- whatever is left has lost its anchor (comment edited, moved or deleted),
-      -- unless the scan only covered part of the repo
+      -- whatever is left has lost its anchor (id or comment deleted, or an
+      -- untagged comment edited or moved), unless the scan only covered part of the repo
       if vim.fs.relpath(dir, root) then
-        for _, entry in pairs(entries) do
-          table.insert(rows, { status = "orphan", entry = entry, root = root, repo = key })
+        for id, entry in pairs(entries) do
+          if not claimed[id] then
+            table.insert(rows, { status = "orphan", entry = entry, root = root, repo = key })
+          end
         end
       end
     end
@@ -138,6 +182,10 @@ function M.relink(only)
       return vim.notify("anchors: no orphaned entries")
     end
     relink.run(orphans, pool, function(entry, a)
+      -- an untagged anchor takes the entry's id, so the entry keeps its file
+      if not tag(a, root, anchor.is_id(entry.id) and entry.id or nil) then
+        return
+      end
       local _, err = store.move(M.opts, key, entry, a)
       if err then
         warn(("could not relink %s: %s"):format(entry.id, err))
@@ -220,6 +268,9 @@ function M.import()
   if not a then
     return warn(("no anchor within %d lines of the cursor"):format(M.opts.import_radius))
   end
+  if not tag(a, root) then
+    return
+  end
   local _, created = store.ensure(M.opts, repo.key(root), a)
   if not created then
     return vim.notify(("anchors: %s already has an entry (%s)"):format(a.title, a.id))
@@ -227,23 +278,28 @@ function M.import()
   vim.notify(("anchors: imported %s:%d  %s"):format(a.path, a.lnum, a.title))
 end
 
---- Create entries for every anchor in the current repo that does not have one.
+--- Create entries for every anchor in the current repo that does not have one,
+--- and embed ids in linked anchors that still rely on the old fingerprint.
 function M.import_all()
   collect_repo(function(rows, root)
     local pending = vim.tbl_filter(function(row)
-      return row.status == "unlinked"
+      return row.status == "unlinked" or (row.status == "linked" and not row.anchor.tagged)
     end, rows)
     if #pending == 0 then
       return vim.notify("anchors: every anchor already has an entry")
     end
-    local choice = vim.fn.confirm(("Create %d entries for %s?"):format(#pending, repo.key(root)), "&Yes\n&No", 2)
+    local choice = vim.fn.confirm(("Import or tag %d anchors in %s?"):format(#pending, repo.key(root)), "&Yes\n&No", 2)
     if choice ~= 1 then
       return
     end
+    local imported = 0
     for _, row in ipairs(pending) do
-      store.ensure(M.opts, repo.key(root), row.anchor)
+      if tag(row.anchor, root) then
+        store.ensure(M.opts, repo.key(root), row.anchor)
+        imported = imported + 1
+      end
     end
-    vim.notify(("anchors: imported %d entries into %s"):format(#pending, store.dir(M.opts, repo.key(root))))
+    vim.notify(("anchors: imported/tagged %d anchors into %s"):format(imported, store.dir(M.opts, repo.key(root))))
   end)
 end
 
