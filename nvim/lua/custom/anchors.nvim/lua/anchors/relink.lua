@@ -1,5 +1,6 @@
--- Reconnect orphaned entries (anchor comment edited, file moved/renamed) to an
--- unlinked anchor. The entry keeps its body; its id, file name and metadata move.
+-- Reconnect orphaned entries to an unlinked anchor: the comment lost its "(id)",
+-- or an untagged comment was edited or its file moved/renamed. The entry keeps
+-- its body; an untagged anchor gets the entry's id written into it.
 local anchor = require("anchors.anchor")
 
 local M = {}
